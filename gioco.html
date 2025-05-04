@@ -1,0 +1,126 @@
+<!DOCTYPE html> <!-- Indica che il documento è in HTML5 -->
+<html lang="it"> <!-- Specifica che la lingua del documento è l'italiano -->
+<head>
+  <meta charset="UTF-8" /> <!-- Imposta la codifica dei caratteri su UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Ottimizza il layout su dispositivi mobili -->
+  <title>Caccia al Coniglio 🐇</title> <!-- Titolo della pagina -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" /> <!-- Importa Bootstrap per lo stile -->
+  <style>
+    body {
+      background: linear-gradient(to right, #ff953f, #4ab34a); /* Sfondo con gradiente arancione-verde */
+      overflow: hidden; /* Impedisce lo scorrimento della pagina */
+      margin: 0; /* Rimuove il margine esterno del body */
+    }
+
+    .rabbit, .snake {
+      width: 70px; /* Larghezza immagine */
+      height: 70px; /* Altezza immagine */
+      position: absolute; /* Permette di posizionare liberamente nell'area di gioco */
+      cursor: pointer; /* Cambia il cursore in mano quando si passa sopra */
+      transition: transform 0.5s; /* Anima la trasformazione (es. ingrandimento) */
+    }
+
+    .rabbit:hover, .snake:hover {
+      transform: scale(1.2); /* Ingrandisce l'immagine quando il mouse ci passa sopra */
+    }
+
+    #start-btn {
+      margin-top: 20px; /* Spazio sopra il pulsante */
+    }
+
+    #score { font-size: 1.5rem; } /* Grandezza del punteggio */
+    #level {
+      font-size: 1.2rem; /* Grandezza del livello */
+      font-weight: bold; /* Grassetto */
+      color: white; /* Colore del testo bianco */
+    }
+
+    #game {
+      position: relative; /* Contenitore per posizionare gli elementi al suo interno */
+      height: 400px; /* Altezza dell'area di gioco */
+      margin-top: 20px; /* Spazio sopra */
+    }
+
+    #instructions {
+      margin-bottom: 20px; /* Spazio sotto le istruzioni */
+    }
+  </style>
+</head>
+<body>
+  <div class="container text-center"> <!-- Contenitore Bootstrap centrato -->
+    <h1 class="mt-4">🎯 Caccia al Coniglio 🐇</h1> <!-- Titolo del gioco -->
+    <p id="instructions" class="lead">Clicca il coniglio, ma evita il serpente!</p> <!-- Istruzioni per il gioco -->
+    <button id="start-btn" class="btn btn-primary btn-lg">Inizia</button> <!-- Pulsante per iniziare il gioco -->
+    <div class="mt-3">
+      <strong>Punti:</strong> <span id="score">0</span> | <!-- Testo e punteggio -->
+      <strong>Livello:</strong> <span id="level">Facile</span> <!-- Testo e livello corrente -->
+    </div>
+    <div id="game"> <!-- Area di gioco dove si muovono coniglio e serpente -->
+      <img id="rabbit" class="rabbit d-none" src="coniglio.png" alt="coniglio"> <!-- Immagine del coniglio (nascosta all'inizio) -->
+      <img id="snake" class="snake d-none" src="serpente.png" alt="serpente"> <!-- Immagine del serpente (nascosta all'inizio) -->
+    </div>
+  </div>
+
+  <script> // Seleziona gli elementi HTML
+    const btn = document.getElementById("start-btn"); // Pulsante "Inizia"
+    const scoreEl = document.getElementById("score"); // Elemento che mostra il punteggio
+    const levelEl = document.getElementById("level"); // Elemento che mostra il livello
+    const rabbit = document.getElementById("rabbit"); // Immagine del coniglio
+    const snake = document.getElementById("snake"); // Immagine del serpente
+    const game = document.getElementById("game"); // Area di gioco
+
+    let score = 0, startTime, rInt, sInt; // Variabili per punteggio, tempo iniziale e intervalli
+
+    btn.onclick = () => { // Funzione eseguita quando si clicca il pulsante "Inizia"
+      score = 0; // Reset del punteggio
+      scoreEl.textContent = score; // Aggiorna il punteggio visibile
+      levelEl.textContent = "Facile"; // Imposta livello iniziale
+      rabbit.classList.remove("d-none"); // Mostra il coniglio
+      snake.classList.add("d-none"); // Nasconde il serpente
+      clearInterval(rInt); // Ferma eventuali vecchi intervalli del coniglio
+      clearInterval(sInt); // Ferma eventuali vecchi intervalli del serpente
+      move(rabbit); // Posiziona subito il coniglio in modo casuale
+      rInt = setInterval(() => move(rabbit), 1000); // Muove il coniglio ogni 1 secondo
+      startTime = new Date(); // Salva l'ora di inizio
+    };
+
+    function move(el) { // Funzione per muovere un elemento (coniglio o serpente) in posizione casuale
+      const w = game.clientWidth - el.offsetWidth; // Calcola larghezza disponibile
+      const h = game.clientHeight - el.offsetHeight; // Calcola altezza disponibile
+      el.style.left = Math.random() * w + "px"; // Posizione X casuale
+      el.style.top = Math.random() * h + "px"; // Posizione Y casuale
+    }
+
+    rabbit.onclick = () => { // Quando si clicca sul coniglio
+      score++; // Aumenta il punteggio
+      scoreEl.textContent = score; // Aggiorna il punteggio sullo schermo
+      move(rabbit); // Muove subito il coniglio
+
+      if (score === 20) { // Quando si arriva a 20 punti
+        levelEl.textContent = "Difficile"; // Cambia livello
+        snake.classList.remove("d-none"); // Mostra il serpente
+        clearInterval(rInt); clearInterval(sInt); // Ferma vecchi intervalli
+        rInt = setInterval(() => move(rabbit), 1000); // Muove il coniglio
+        sInt = setInterval(() => move(snake), 1000); // Muove il serpente
+      }
+
+      if (score === 41) { // Quando si arriva a 41 punti
+        levelEl.textContent = "Estremo"; // Cambia livello
+        clearInterval(rInt); clearInterval(sInt); // Ferma vecchi intervalli
+        rInt = setInterval(() => move(rabbit), 900); // Muove il coniglio ancora più spesso
+        sInt = setInterval(() => move(snake), 800); // Muove il serpente più rapidamente
+      }
+    };
+
+    snake.onclick = () => { // Quando si clicca sul serpente
+      clearInterval(rInt); // Ferma il coniglio
+      clearInterval(sInt); // Ferma il serpente
+      rabbit.classList.add("d-none"); // Nasconde il coniglio
+      snake.classList.add("d-none"); // Nasconde il serpente
+      const t = Math.floor((new Date() - startTime) / 1000); // Calcola tempo totale in secondi
+      const m = Math.floor(t / 60), s = t % 60; // Converte in minuti e secondi
+      alert(`Hai perso! Hai toccato il serpente!\nPunti: ${score}\nTempo: ${m} minut${m !== 1 ? 'i' : ''} e ${s} second${s !== 1 ? 'i' : ''}`); // Mostra un messaggio con punteggio e tempo
+    };
+  </script>
+</body>
+</html>
